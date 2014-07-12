@@ -50,14 +50,20 @@ def signup():
 
 @app.route("/login", methods=["POST"])
 def login():
-  email = request.form['email']
-  password = request.form['pass']
+  print request
+  params = request.get_json()
+  print params
+  email = params['email']
+  password = params['pass'] 
 
+  print "start\n"
   user = Grubhub(config.key).login(email, password)
+  print "user\n"
   error_code = get_error_code(user)
+  print "error_code\n"
   if error_code:
     return jsonify(error[error_code])
-
+    #make jason request  
   session['token'] = user["token"]
   return jsonify(error["SUCCESS"])
 
@@ -108,4 +114,4 @@ def order():
 app.secret_key = config.secret_key
 
 if __name__ == "__main__":
-  app.run(port=5001, debug=True)
+  app.run(host = '0.0.0.0', port=5001, debug=False)
