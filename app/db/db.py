@@ -21,19 +21,19 @@ class DB(object):
     return self.searches.insert(search)
 
   def add_meal(meal, search_id):
-    self.searches.update({_id: search_id}, {$inc : { found: 1, complete: 1 }})
+    self.searches.update({"_id": search_id}, { "$inc" : { found: 1, complete: 1 }})
     meal["sent"] = False
     meal["search_id"] = search_id
     self.meals.insert(meal)
 
   def fail_thread(search_id):
-    self.searches.update({_id: search_id}, {$inc : { complete: 1 }})
+    self.searches.update({"_id": search_id}, { "$inc" : { complete: 1 }})
 
   def get_meal(search_id):
     meal = self.meals.find_one({search_id: search_id, sent: False})
     if meal is None:
       return None
-    self.searches.update({_id: search_id}, {$inc : { sent: 1 }})
-    self.meals.update({_id: meal._id, search_id: search_id}, {$set : { sent: False }})
+    self.searches.update({"_id": search_id}, { "$inc" : { sent: 1 }})
+    self.meals.update({"_id": meal._id, search_id: search_id}, {"$set" : { sent: False }})
     return meal
 
