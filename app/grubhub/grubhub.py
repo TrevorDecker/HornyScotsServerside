@@ -62,7 +62,6 @@ class Grubhub(object):
       "firstName": firstName,
       "lastName": lastName,
     }
-    print params
     return self.get_url("/services/account/create", params)
 
   def login(self, email, password):

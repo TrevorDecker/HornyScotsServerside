@@ -43,6 +43,9 @@ class Meal:
         section_id = str(section["@id"])
         self.section_menu.append([])
 
+        if not isinstance(section["items"]["item"], list):
+          section["items"]["item"] = [section["items"]["item"]]
+
         for item in section["items"]["item"]:
             try:
                 new_item = Item(item, section_id)
@@ -54,11 +57,13 @@ class Meal:
 
 
     def generate_meal(self, menu):
-        for option in menu["menu"]["item-choices"]["choice"]:
-            self.options[option["@id"]] = { "min": option.get("min",0) , "max": option.get("max", 2) , "desc": option["name"], "options": option["options"] }
- 
-        for section in menu["menu"]["menu-sections"]["section"]:
-            Meal.parse_section(self, section)
+        if menu["item-choices"]:
+            for option in menu["item-choices"]["choice"]:
+                self.options[option["@id"]] = { "min": option.get("min",0) , "max": option.get("max", 2) , "desc": option["name"], "options": option["options"] }
+        
+        if menu["menu-sections"]:
+            for section in menu["menu-sections"]["section"]:
+                Meal.parse_section(self, section)
 
         while self.remaining/self.total > min(0.2,random()) and self.count > 0:        
             for key in self.menu:
@@ -72,7 +77,7 @@ class Meal:
                     self.eval_item(item)
                     self.count -= 1
                 
-        return self.order
+        return self.order, self.total - self.remaining
 
     def eval_item(self, item):
         if (self.remaining == 0):
@@ -91,9 +96,8 @@ class Meal:
         score = Meal.remaining_weight[type] * remaining_scale + Meal.total_weight[type] * total_scale + Meal.base_weight[type] * Meal.base(self, type)
 
         if (score > Meal.threshold):
-            self.order[type].append(item)
+            self.order[type].append(item.to_json())
             self.remaining -= item.price
-            print self.remaining
             return True
         
         return False
