@@ -34,7 +34,7 @@ class DB(object):
     meal = self.meals.find_one({search_id: search_id, sent: False})
     if meal is None:
       return None
-    self.searches.update({"_id": search_id}, { "$inc" : { sent: 1 }})
-    self.meals.update({"_id": meal._id, search_id: search_id}, {"$set" : { sent: False }})
+    self.searches.update({"_id": search_id}, { "$inc" : { "sent": 1 }})
+    self.meals.update({"_id": meal._id, "search_id": search_id}, {"$set" : { "sent": False }})
     return meal
 

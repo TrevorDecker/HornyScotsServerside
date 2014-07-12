@@ -1,11 +1,12 @@
 from functools import wraps
 from flask import Flask, jsonify, session, request
 from error import error
-from grubhub import Grubhub
+from grubhub import Grubhub, start_search
 import config
 from db import DB
 
 app = Flask(__name__)
+db = DB()
 
 # helper functions
 def login_required(f):
@@ -80,13 +81,28 @@ def search(count=None):
   lat = float(request.form["lat"])
   lng = float(request.form["lng"])
 
-  search_id = DB.make_search(lat, lng, count)
+  search_id = str(db.make_search(lat, lng, count))
   gh = Grubhub(config.key, session["token"])
-
   # spawn async search on grubhub db
   # return session id
+  r = gh.search(lat, lng)
+  rest_list = [parseRest(rest) for rest in r["restaurants"]["restaurant"]]
+  start_search(gh, count, search_id, lat, lng, rest_list)
 
-  return jsonify(error["SUCCESS"])
+  result = error["SUCCESS"]
+  result["id"] = search_id
+
+  return jsonify(result)
+
+def parseRest(rest):
+  return {
+    "id": rest["@id"],
+    "name": rest["name"],
+    "rating": float(rest.get("rating", 3.0)),
+    "deliveryFee": float(rest.get("delivery-fee", 0.0)),
+    "orderMin": float(rest.get("orderMin", 0.0)),
+    "phone": rest.get("phone", "No contact"),
+  }
 
 @app.route("/recall", methods=["POST"])
 @login_required

@@ -7,7 +7,7 @@ class Food(Enum):
     Appetizer = 2
     Main = 0
     Dessert = 3
-    Unknown = 0.5
+    Unknown = 4
 
 class Item:
     def __init__(self, item, section):
@@ -25,6 +25,15 @@ class Item:
         else:
             self.options = None
         self.config = {}
+
+    def to_json(self):
+      return {
+        "id": self.id,
+        "name": self.name,
+        "config": self.config,
+        "type": self.type,
+        "price": self.price,
+      }
 
     def get_tag(self, tags):
         if tags:
@@ -51,7 +60,7 @@ class Item:
     def add_option(self, id, desc, data):
         if id not in self.config:
             self.config[id] = {"desc": desc, "select": []}
-        self.config[id]["select"].append(data)
+        self.config[id]["select"].append((data["@id"], data["description"]))
     
     def set_option(self, option_id, options, cash):
         insert = 0
@@ -61,7 +70,7 @@ class Item:
         for option in options_list:
             price = float(option.get("option-price", 0))
             price_ratio = price/cash
-            if price_ratio > random() or (insert < options["min"] and random() < 0.4):
+            if price_ratio > random() or (insert < options["min"] and random() > 0.3):
                 self.price += price
                 self.add_option(option_id, options["desc"], option)
                 insert += 1
