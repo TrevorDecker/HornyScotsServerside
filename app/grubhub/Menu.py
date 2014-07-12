@@ -4,6 +4,7 @@ import xmltodict
 import urllib2
 import json
 from random import randint, random
+import config
 
 class Meal:
     base_scores = {Food.Drink : .5, Food.Appetizer : .5, Food.Main : .8, Food.Dessert : .2, Food.Unknown: 0.8}
@@ -43,10 +44,13 @@ class Meal:
         self.section_menu.append([])
 
         for item in section["items"]["item"]:
-            new_item = Item(item, section_id)
-            self.menu[new_item.type].append(new_item)
-            self.section_menu[-1].append(new_item)
-            self.count += 1
+            try:
+                new_item = Item(item, section_id)
+                self.menu[new_item.type].append(new_item)
+                self.section_menu[-1].append(new_item)
+                self.count += 1
+            except TypeError:
+                pass
 
 
     def generate_meal(self, menu):
@@ -59,6 +63,9 @@ class Meal:
         while self.remaining/self.total > min(0.2,random()) and self.count > 0:        
             for key in self.menu:
                 items = self.menu[key]
+                if key == Food.Drink:
+                    if randint(1, 100) <= config.drink_chance:
+                        continue
                 if len(items) > 0:
                     item_index = randint(0, len(items) - 1)
                     item = items.pop(item_index)
@@ -92,7 +99,7 @@ class Meal:
         return False
 
 if __name__ == "__main__":
-    req = urllib2.Request('https://qa2.ghbeta.com/services/restaurant/menu?restaurantId=514&format=xml&apiKey=IYdXcHyPq0I5adBKgDMQVpagmgU2jFuP')
+    req = urllib2.Request('https://qa2.ghbeta.com/services/restaurant/menu?restaurantId=266581&format=xml&apiKey=IYdXcHyPq0I5adBKgDMQVpagmgU2jFuP')
     r = urllib2.urlopen(req) 
     p = r.read()
     x = xmltodict.parse(p)

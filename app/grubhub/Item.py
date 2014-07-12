@@ -7,7 +7,7 @@ class Food(Enum):
     Appetizer = 2
     Main = 0
     Dessert = 3
-    Unknown = 0.5
+    Unknown = 4
 
 class Item:
     def __init__(self, item, section):
