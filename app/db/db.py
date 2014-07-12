@@ -4,7 +4,7 @@ class DB(object):
   """docstring for DB"""
   def __init__(self, host="localhost", port=27017):
     super(DB, self).__init__()
-    self.client = MongoClient('localhost', 27017)
+    self.client = MongoClient(host, port)
     self.db = self.client.linkedin_hack
     self.searches =  self.db.searches
     self.meals = self.db.meals

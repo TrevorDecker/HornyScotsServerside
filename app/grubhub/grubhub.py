@@ -21,14 +21,16 @@ class Grubhub(object):
     if self.token is not None:
       params["token"] = self.token
     data = urllib.urlencode(params)
-    print "self.protocol",self.protocol,"\n"
-    print "self.host",self.host,"\n"
-    print "url",url,"\n"
-    print "data",data,"\n"
-    f = urllib.urlopen(self.protocol + self.host + url + "?" + data)
-    print "hi \n"
-    x = xml2dict.parse(f.read())
-    return x[x.keys()[0]]
+    try:
+	print self.protocol + self.host + url + "?" + data
+    	f = urllib.urlopen(self.protocol + self.host + url + "?" + data)
+	print f.read()
+    	x = xml2dict.parse(f.read())
+    	return x[x.keys()[0]]
+    except urllib2.HTTPError as e:
+	error = e.read()
+	print error
+	return {}
 
   def search(self, lat, lng, pickup=False):
     params = {
