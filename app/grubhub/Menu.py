@@ -57,11 +57,11 @@ class Meal:
 
 
     def generate_meal(self, menu):
-        if menu["item-choices"]:
+        if ("item-choices" in menu) and menu["item-choices"]:
             for option in menu["item-choices"]["choice"]:
                 self.options[option["@id"]] = { "min": option.get("min",0) , "max": option.get("max", 2) , "desc": option["name"], "options": option["options"] }
         
-        if menu["menu-sections"]:
+        if ("menu-sections" in menu) and menu["menu-sections"]:
             for section in menu["menu-sections"]["section"]:
                 Meal.parse_section(self, section)
 
@@ -100,21 +100,7 @@ class Meal:
             self.remaining -= item.price
             return True
         
-        return False
-
-if __name__ == "__main__":
-    req = urllib2.Request('https://qa2.ghbeta.com/services/restaurant/menu?restaurantId=266581&format=xml&apiKey=IYdXcHyPq0I5adBKgDMQVpagmgU2jFuP')
-    r = urllib2.urlopen(req) 
-    p = r.read()
-    x = xmltodict.parse(p)
-    meal = Meal()
-    order = meal.generate_meal(x)
-    
-    for items in order.values():
-        for item in items:
-            print item.name, item.price, str(item.type), item.config
-        
-        
+        return False        
         
         
         
