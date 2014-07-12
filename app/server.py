@@ -1,7 +1,8 @@
 from functools import wraps
-from flask import Flask, jsonify, session
+from flask import Flask, jsonify, session, request
 from error import error
-import grubhub
+from grubhub import Grubhub
+import config
 
 app = Flask(__name__)
 
@@ -10,13 +11,19 @@ def login_required(f):
   @wraps(f)
   def decorated_function(*args, **kwargs):
     if 'token' in session:
-      if session['token']:
-        return f(*args, **kwargs)
+      return f(*args, **kwargs)
     return jsonify(error["NOT_LOGGED_IN"])
+  
   return decorated_function
 
-def get_param(param):
-  return request.form[param]
+def get_error_code(data):
+  print data
+  if "ns2:messages" in data:
+    if "ns2:message" in data["ns2:messages"]:
+      content = data["ns2:messages"]["ns2:message"]
+      if content["@type"] == "error":
+        return content["@msgCode"]
+  return None
 
 # routes
 @app.route("/")
@@ -28,18 +35,30 @@ def status():
   return jsonify({"status": True})
 
 @app.route("/signup", methods=["POST"])
-def signup(email=None, password=None, first_name=None, last_name=None):
-  return gh.do_signup(email, password, first_name, last_name)
+def signup():
+  email = request.form['email']
+  password = request.form['pass']
+  first_name = request.form['firstName']
+  last_name = request.form['lastName']
+
+  user = Grubhub(config.key).sign_up(email, password, first_name, last_name)
+  error_code = get_error_code(user)
+  if error_code:
+    return jsonify(error[error_code])
+  return jsonify(user)
 
 @app.route("/login", methods=["POST"])
 def login():
-  email = get_param('email')
-  password = get_param('pass')
+  email = request.form['email']
+  password = request.form['pass']
 
-  user = gh.do_login(email, password)
-  if user is not None:
-    session['token'] = result.token
-  return jsonify(error["NOT_LOGGED_IN"])
+  user = Grubhub(config.key).login(email, password)
+  error_code = get_error_code(user)
+  if error_code:
+    return jsonify(error[error_code])
+
+  session['token'] = user["token"]
+  return jsonify(error["SUCCESS"])
 
 @app.route("/logout", methods=["POST"])
 @login_required
@@ -51,8 +70,9 @@ def logout():
 @login_required
 def search(count=None):
   count = int(count)
-  lat = float(get_param("lat"))
-  lng = float(get_param("lng"))
+  lat = float(request.form["lat"])
+  lng = float(request.form["lng"])
+  gh = Grubhub(config.key, session["token"])
 
   # spawn async search on grubhub db
   # return session id
@@ -62,7 +82,8 @@ def search(count=None):
 @app.route("/recall", methods=["POST"])
 @login_required
 def recall():
-  session_id = get_param('session')
+  session_id = request.form['session']
+  gh = Grubhub(config.key, session["token"])
 
   # query db and return
 
@@ -71,14 +92,17 @@ def recall():
 @app.route("/order", methods=["POST"])
 @login_required
 def order():
-  session_id = get_param('session')
-  meal_id = get_param('id')
-  address = get_param('address')
-  payment = get_param('pay')
+  session_id = request.form['session']
+  meal_id = request.form['id']
+  address = request.form['address']
+  payment = request.form['pay']
+  gh = Grubhub(config.key, session["token"])
 
   # create order
 
   return jsonify({})
 
+app.secret_key = config.secret_key
+
 if __name__ == "__main__":
-  app.run(port=5001)
+  app.run(port=5001, debug=True)
