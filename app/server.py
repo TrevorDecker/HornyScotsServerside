@@ -108,4 +108,4 @@ def order():
 app.secret_key = config.secret_key
 
 if __name__ == "__main__":
-  app.run(port=5001, debug=True)
+  app.run(port=5005, host='0.0.0.0', debug=True)
