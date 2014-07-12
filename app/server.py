@@ -3,6 +3,7 @@ from flask import Flask, jsonify, session, request
 from error import error
 from grubhub import Grubhub
 import config
+from db import DB
 
 app = Flask(__name__)
 
@@ -72,6 +73,8 @@ def search(count=None):
   count = int(count)
   lat = float(request.form["lat"])
   lng = float(request.form["lng"])
+
+  search_id = DB.make_search(lat, lng, count)
   gh = Grubhub(config.key, session["token"])
 
   # spawn async search on grubhub db
