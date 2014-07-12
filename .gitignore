@@ -52,6 +52,8 @@ docs/_build/
 # PyBuilder
 target/
 
+config.py
 *~
 venv/
 hello.py
+
