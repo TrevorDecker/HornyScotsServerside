@@ -5,20 +5,22 @@ import random
 import sys
 sys.path.append('../db')
 import db
-
+import grubhub as gh
 
 #must be defined before startSearch
 #serach id is the session id for th serach
 #tryNum is the number that is being used this is mostly just a seed
-def thread_func(search_id,(tryNum,_)):
+def thread_func(search_id,(tryNum,(lat,lng,rest_ids))):
     meal = None
     tryCount = 0
     maxTrys = 10
     DB = db.DB()
+    rest_id = rest_ids(random.randint(0,len(rest_ids)))
+    menu = gh.rest_menu(rest_id,lat,lng)
     while meal  is None and tryCount < maxTrys:
-        #might be infinite loop
-        meal = random.randint(0,10)#call meal create
-    if meal is None:
+        meal = Meal()
+        meal = meal.generate_meal(menu)
+    if order is None:
         #send fail message
         DB.fail_thread(search_id)
     else:
@@ -27,17 +29,14 @@ def thread_func(search_id,(tryNum,_)):
 
 
 #called by controler 
-#neededMeals the number of meals that are needed
-#serach_id is the session id for the search 
-#db = mongodb database
-def startSearch(neededMeals,serach_id):
+def startSearch(neededMeals,serach_id,lat,lan,restids):
     maxTrys = 2*neededMeals
     tryNum = 0;
     meals = 0;
     while (tryNum <= maxTrys and meals <= neededMeals): 
         tryNum += 1
         try:
-            thread.start_new_thread(thread_func,(serach_id,(tryNum,0)))
+            thread.start_new_thread(thread_func,(serach_id,(tryNum,(lat,lan,restids))))
             success += 1
         except:
            print "thread failed trying again\n"
