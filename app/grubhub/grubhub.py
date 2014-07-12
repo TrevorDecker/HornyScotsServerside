@@ -21,7 +21,12 @@ class Grubhub(object):
     if self.token is not None:
       params["token"] = self.token
     data = urllib.urlencode(params)
+    print "self.protocol",self.protocol,"\n"
+    print "self.host",self.host,"\n"
+    print "url",url,"\n"
+    print "data",data,"\n"
     f = urllib.urlopen(self.protocol + self.host + url + "?" + data)
+    print "hi \n"
     x = xml2dict.parse(f.read())
     return x[x.keys()[0]]
 
