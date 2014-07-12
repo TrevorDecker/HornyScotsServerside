@@ -53,3 +53,7 @@ docs/_build/
 target/
 
 config.py
+*~
+venv/
+hello.py
+
